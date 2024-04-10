@@ -1,7 +1,10 @@
 package main
 
 import (
+	"crypto/sha256"
 	"fmt"
+	"io"
+	"log"
 	"os"
 	"path/filepath"
 	"strings"
@@ -25,13 +28,36 @@ func isMediaFile(file string) bool {
 	return false
 }
 
+/*
 // scanDirectory recursively scans the given directory for media files
+
+	func ScanDirectoryParallel(directory string) {
+		cwalk.NumWorkers = runtime.GOMAXPROCS(1)
+		var files = []file{}
+		err := cwalk.WalkWithSymlinks(directory, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+
+			if !info.IsDir() && isMediaFile(path) {
+				fmt.Println("Media File:", path)
+				files = append(files, file{name: info.Name(), location: path, Type: "movie", hash: hashFile(path)})
+			}
+			return nil
+		})
+
+		if err != nil {
+			//fmt.Println("Error scanning directory:", err)
+		}
+		fmt.Printf("%v", files)
+	}
+*/
 func ScanDirectory(directory string) {
+	var files = []file{}
 	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
-
 		// Check if the file is a symbolic link
 		if info.Mode()&os.ModeSymlink != 0 {
 			realPath, err := filepath.EvalSymlinks(path)
@@ -48,14 +74,23 @@ func ScanDirectory(directory string) {
 
 		if !info.IsDir() && isMediaFile(path) {
 			fmt.Println("Media File:", path)
-		} else {
-			fmt.Println("Not Media File : ", path)
+			files = append(files, file{name: info.Name(), location: filepath.Dir(path), Type: "movie", hash: hashFile(path)})
 		}
 
 		return nil
 	})
-
 	if err != nil {
 		fmt.Println("Error scanning directory:", err)
 	}
+}
+
+func hashFile(filePath string) string {
+	file, _ := os.Open(filePath)
+	defer file.Close()
+
+	hash := sha256.New()
+	if _, err := io.Copy(hash, file); err != nil {
+		log.Fatal(err)
+	}
+	return fmt.Sprintf("%x", hash.Sum(nil))
 }
