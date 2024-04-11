@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-type file struct {
+type media struct {
 	name     string
 	location string
 	Type     string
@@ -53,7 +53,7 @@ func isMediaFile(file string) bool {
 	}
 */
 func ScanDirectory(directory string) {
-	var files = []file{}
+	var medias = []media{}
 	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -74,7 +74,7 @@ func ScanDirectory(directory string) {
 
 		if !info.IsDir() && isMediaFile(path) {
 			fmt.Println("Media File:", path)
-			files = append(files, file{name: info.Name(), location: filepath.Dir(path), Type: "movie", hash: hashFile(path)})
+			medias = append(medias, media{name: info.Name(), location: filepath.Dir(path), Type: "movie", hash: hashFile(path)})
 		}
 
 		return nil
