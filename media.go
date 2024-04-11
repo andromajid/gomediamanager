@@ -10,11 +10,12 @@ import (
 	"strings"
 )
 
-type media struct {
-	name     string
-	location string
+type Media struct {
+	Id       int64
+	Name     string
+	Location string
 	Type     string
-	hash     string
+	Hash     string
 }
 
 // isMediaFile checks if a given file is a media file based on its extension
@@ -52,8 +53,7 @@ func isMediaFile(file string) bool {
 		fmt.Printf("%v", files)
 	}
 */
-func ScanDirectory(directory string) {
-	var medias = []media{}
+func ScanDirectory(directory string, db Db) {
 	err := filepath.Walk(directory, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -73,8 +73,10 @@ func ScanDirectory(directory string) {
 		}
 
 		if !info.IsDir() && isMediaFile(path) {
-			fmt.Println("Media File:", path)
-			medias = append(medias, media{name: info.Name(), location: filepath.Dir(path), Type: "movie", hash: hashFile(path)})
+			sqlResult, err := db.AddFile(Media{Name: info.Name(), Location: filepath.Dir(path), Type: "movie", Hash: hashFile(path)})
+			if err != nil {
+				fmt.Println("Succesfully inserted files : ", path, " sql result : ", sqlResult)
+			}
 		}
 
 		return nil
