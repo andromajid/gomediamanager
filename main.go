@@ -6,5 +6,5 @@ import (
 
 func main() {
 	fmt.Println("Hello, World!")
-	ScanDirectory("/home/andro/Downloads")
+	ScanDirectory("/home/andro")
 }
